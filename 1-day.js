@@ -1,7 +1,7 @@
 require('es6-promise').polyfill()
 require('isomorphic-fetch')
 
-async function main() {
+const main = async() => {
     const data = await fetch('https://pastebin.com/raw/yVSKxTnK').then(response => response.text())
     const input = data.split(/\r?\n/)
 
