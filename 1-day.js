@@ -6,7 +6,15 @@ async function main() {
     const input = data.split(/\r?\n/)
 
     const result = input.reduce((acc, item) => {
-        return acc + Math.floor(+item / 3) - 2
+        let total = acc
+        let fuel = Math.floor(+item / 3) - 2
+
+        while (fuel > 0) {
+            total += fuel
+            fuel = Math.floor(fuel / 3) - 2
+        }
+
+        return total
     }, 0)
 
     console.log(result)
