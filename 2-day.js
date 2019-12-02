@@ -4,8 +4,8 @@ require('isomorphic-fetch')
 const main = async() => {
     const data = await fetch('https://pastebin.com/raw/Amih4G6D').then(response => response.text())
     const input = data.split(',').map(code => +code)
-    input[1] = 12
-    input[2] = 2
+    input[1] = 23
+    input[2] = 47
 
     const programSize = input.length
     let index = 0
@@ -30,7 +30,7 @@ const main = async() => {
         code = input[index]
     }
 
-    console.log(input[0])
+    console.log(100 * input[1] + input[2])
 }
 
 main()
