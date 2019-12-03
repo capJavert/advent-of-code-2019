@@ -1,8 +1,6 @@
 require('es6-promise').polyfill()
 require('isomorphic-fetch')
 
-const manhattan = (p, q) => Math.abs(p.x - q.x) + Math.abs(p.y - q.y)
-
 const main = async() => {
     const data = await fetch('https://pastebin.com/raw/B6G5dmir').then(response => response.text())
     const input = data.split(/\r?\n/)
@@ -15,10 +13,13 @@ const main = async() => {
     input.forEach((item, index) => {
         const path = item.split(',')
         wires.push({})
+        let steps = 0
         let { x, y } = center
 
         const followWire = (axis, wire, move, moveValue) => {
             for (let i = 0; i < move; i += 1) {
+                steps += 1
+
                 if (axis === 'x') {
                     x += moveValue
                 } else {
@@ -26,18 +27,18 @@ const main = async() => {
                 }
 
                 if (wire === 1 && wires[0][`${x},${y}`]) {
-                    const distance = manhattan(center, { x, y })
+                    const distance = steps + wires[0][`${x},${y}`]
                     intersections.push({ x, y })
 
                     if (result) {
                         result = Math.min(result, distance)
                     } else {
-                        result = distance
+                        result = steps + wires[0][`${x},${y}`]
                     }
 
                 }
 
-                wires[wire][`${x},${y}`] = true
+                wires[wire][`${x},${y}`] = steps
             }
         }
 
