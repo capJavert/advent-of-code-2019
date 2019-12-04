@@ -1,7 +1,7 @@
 require('es6-promise').polyfill()
 require('isomorphic-fetch')
 
-const doubleRegex = /(\d)\1+/
+const doubleRegex = /(\d)\1+/g
 
 /* eslint-disable no-continue */
 const main = async() => {
@@ -13,8 +13,8 @@ const main = async() => {
     for (let i = input[0]; i <= input[1]; i += 1) {
         const password = i.toString()
 
-
-        if (!doubleRegex.test(password)) {
+        const doubleMatch = password.match(doubleRegex)
+        if (!doubleMatch || !password.match(doubleRegex).some(match => match.length === 2)) {
             continue
         }
 
