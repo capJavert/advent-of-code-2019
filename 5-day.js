@@ -5,7 +5,7 @@ const main = async() => {
     const data = await fetch('https://pastebin.com/raw/4VjbCzNL').then(response => response.text())
     const input = data.split(',').map(code => +code)
 
-    const programInputs = [1]
+    const programInputs = [5]
     const programSize = input.length
     let index = 0
 
@@ -58,6 +58,28 @@ const main = async() => {
             case 4:
                 console.log(getParameter(1, modes))
                 index += 2
+                break
+            case 5:
+                if (getParameter(1, modes)) {
+                    index = getParameter(2, modes)
+                } else {
+                    index += 3
+                }
+                break
+            case 6:
+                if (!getParameter(1, modes)) {
+                    index = getParameter(2, modes)
+                } else {
+                    index += 3
+                }
+                break
+            case 7:
+                input[getParameter(3, 1)] = getParameter(1, modes) < getParameter(2, modes) ? 1 : 0
+                index += 4
+                break
+            case 8:
+                input[getParameter(3, 1)] = getParameter(1, modes) === getParameter(2, modes) ? 1 : 0
+                index += 4
                 break
             default:
                 throw new Error(`Unknown opcode ${code} encountered!`)
