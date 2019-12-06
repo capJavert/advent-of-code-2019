@@ -5,7 +5,7 @@ const bfs = (next, searchKey, taskFn = null, queue = []) => {
     const node = next.original || next
 
     if (typeof taskFn === 'function') {
-        taskFn(node, next.depth || 0)
+        taskFn(node, next.depth || 0, next.parent || null)
     }
 
     if (node.key === searchKey) {
@@ -13,7 +13,7 @@ const bfs = (next, searchKey, taskFn = null, queue = []) => {
     }
 
     node.leaves.forEach(leaf => {
-        queue.push({ ...leaf, original: leaf, depth: (next.depth || 0) + 1 })
+        queue.push({ ...leaf, original: leaf, depth: (next.depth || 0) + 1, parent: next })
     })
 
     if (!queue.length) {
@@ -23,9 +23,21 @@ const bfs = (next, searchKey, taskFn = null, queue = []) => {
     return bfs(queue.shift(), searchKey, taskFn, queue)
 }
 
+const getParents = (object) => {
+    let grandParent = object.parent
+    const parents = []
+
+    while (grandParent) {
+        parents.push(grandParent.key)
+        grandParent = grandParent.parent
+    }
+
+    return parents.reverse()
+}
+
 const main = async() => {
     const data = await fetch('https://pastebin.com/raw/SeSpe6CQ').then(response => response.text())
-    // const data = await fetch('https://pastebin.com/raw/XN1zskiu').then(response => response.text())
+    // const data = await fetch('https://pastebin.com/raw/D9QZy7aG').then(response => response.text())
     const input = data.split(/\r?\n/)
 
     const objectsMap = {}
@@ -80,21 +92,31 @@ const main = async() => {
         }
     }
 
-    const orbitsCounts = {}
+    let me = null
+    let santa = null
 
-    const countOrbits = (node, depth) => {
-        orbitsCounts[node.key] = 0
+    bfs(tree, null, (node, depth, parent) => {
+        if (node.key === 'YOU') {
+            me = parent
+        } else if (node.key === 'SAN') {
+            santa = parent
+        }
+    })
 
-        if (node.key === 'COM') {
-            return
+    const meParents = getParents(me)
+    const santaParents = getParents(santa)
+
+    let commonOrbit = 0
+
+    while (true) { // eslint-disable-line no-constant-condition
+        if (meParents[commonOrbit] !== santaParents[commonOrbit]) {
+            break
         }
 
-        orbitsCounts[node.key] += depth
+        commonOrbit += 1
     }
 
-    bfs(tree, null, countOrbits)
-
-    console.log(Object.values(orbitsCounts).reduce((acc, count) => acc + count, 0))
+    console.log(meParents.slice(commonOrbit).length + santaParents.slice(commonOrbit).length + 2)
 }
 
 main()
