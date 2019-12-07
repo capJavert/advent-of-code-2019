@@ -39,10 +39,10 @@ function getAnagrams(input) {
     return anagrams
 }
 
-const intcodeComputer = (intcode, inputs, stdout = console.log) => {
+const intcodeComputer = (intcode, cursor, stdin, stdout = console.log) => {
     const program = [...intcode]
     const programSize = program.length
-    let index = 0
+    let index = cursor
 
     const readOpcode = () => {
         const params = program[index].toString().split('')
@@ -71,6 +71,7 @@ const intcodeComputer = (intcode, inputs, stdout = console.log) => {
     }
 
     let { code, modes } = readOpcode()
+    let pause = false
 
     while (code !== 99 && index < programSize) {
         switch (code) {
@@ -83,15 +84,11 @@ const intcodeComputer = (intcode, inputs, stdout = console.log) => {
                 index += 4
                 break
             case 3:
-                if (!inputs.length) {
-                    throw new Error('No program inputs are available!')
-                }
-
-                program[getParameter(1, 1)] = inputs.shift()
+                program[getParameter(1, 1)] = stdin()
                 index += 2
                 break
             case 4:
-                stdout(getParameter(1, modes))
+                pause = stdout(getParameter(1, modes), { memory: program, index: index + 2 })
                 index += 2
                 break
             case 5:
@@ -120,31 +117,75 @@ const intcodeComputer = (intcode, inputs, stdout = console.log) => {
                 throw new Error(`Unknown opcode ${code} encountered!`)
         }
 
+        if (pause) {
+            break
+        }
+
         const opcode = readOpcode()
         code = opcode.code
         modes = opcode.modes
+    }
+
+    if (!pause) {
+        stdout('HALT')
     }
 }
 
 const main = async () => {
     const data = await fetch('https://pastebin.com/raw/3H0uuqZb').then(response => response.text())
+    // const data = '3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10'
     const input = data.split(',').map(code => +code)
 
     let maxOutput = 0
-    let lastOutput = 0
 
-    const stdout = (output => {
-        lastOutput = output
-    })
+    getAnagrams([5, 6, 7, 8, 9]).forEach(anagram => {
+        let lastOutput = 0
+        let ampIndex = 0
+        let didHalt = false
+        const amplifiers = new Array(5).fill(null).map(() => ({ memory: null, index: 0 }))
 
-    getAnagrams([0, 1, 2, 3, 4]).forEach(anagram => {
-        lastOutput = 0
+        const stdin = () => {
+            const { memory, started } = amplifiers[ampIndex]
+            let value
 
-        anagram.forEach(programInput => {
-            intcodeComputer(input, [programInput, lastOutput], stdout)
+            if (!memory && !started) {
+                amplifiers[ampIndex].started = true
+                value = anagram.shift()
+            } else {
+                value = lastOutput
+            }
+
+            return value
+        }
+
+        const stdout = ((output, state) => {
+            if (output !== 'HALT') {
+                lastOutput = output
+
+                if (ampIndex === 4) {
+                    maxOutput = Math.max(maxOutput, lastOutput)
+                }
+
+                amplifiers[ampIndex] = state
+                ampIndex = (ampIndex + 1) % 5
+
+                return true
+            }
+
+            if (ampIndex === 4) {
+                didHalt = true
+            }
+
+            amplifiers[ampIndex] = state
+            ampIndex = (ampIndex + 1) % 5
+
+            return false
         })
 
-        maxOutput = Math.max(maxOutput, lastOutput)
+        while (!didHalt) {
+            const { memory, index } = amplifiers[ampIndex]
+            intcodeComputer(memory || input, index, stdin, stdout)
+        }
     })
 
     console.log(maxOutput)
