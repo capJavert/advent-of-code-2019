@@ -23,23 +23,28 @@ const main = async() => {
         layers[layerIndex].push(digit)
     })
 
-    let min = Infinity
-    let result = 0
+    const image = layers.reduce((acc, layer) => {
+        layer.forEach((digit, index) => {
+            if (acc[index] === undefined || acc[index] === 2) {
+                acc[index] = digit
+            }
+        })
 
-    layers.forEach(layer => {
-        const checksum = layer.reduce((acc, digit) => {
-            acc[digit] += 1
-
-            return acc
-        }, { 0: 0, 1: 0, 2: 0})
-
-        if (checksum[0] < min) {
-            min = checksum[0] // eslint-disable-line prefer-destructuring
-            result = checksum[1] * checksum[2]
-        }
+        return acc
     })
 
-    console.log(result)
+
+    let render = ''
+
+    image.forEach((pixel, index) => {
+        if (index && index % size.width === 0) {
+            render += '\n'
+        }
+
+        render += pixel === 0 ? '■' : '□'
+    })
+
+    console.log(render)
 }
 
 main()
