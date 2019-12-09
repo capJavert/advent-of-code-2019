@@ -139,7 +139,7 @@ const main = async () => {
         return acc
     }, {})
 
-    intcodeComputer(input, 0, () => 1, (output) => {
+    intcodeComputer(input, 0, () => 2, (output) => {
         console.log('output', output)
     })
 
